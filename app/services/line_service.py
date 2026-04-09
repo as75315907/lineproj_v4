@@ -35,14 +35,89 @@ class LineBotService:
     async def push_shift_form(self, to_id: str) -> None:
         payload = {
             "to": to_id,
-            "messages": [{"type": "flex", "altText": "明日班別報名（請點選按鈕）", "contents": {"type": "bubble", "header": {"type": "box", "layout": "vertical", "contents": [{"type": "text", "text": "明日班別報名", "weight": "bold", "size": "xl", "color": "#ffffff"}], "backgroundColor": "#00b900"}, "body": {"type": "box", "layout": "vertical", "contents": [{"type": "text", "text": "報名時間：21:00 - 00:00", "size": "xs", "color": "#aaaaaa"}, {"type": "button", "action": {"type": "postback", "label": "早班 07:00", "data": "shift=早7", "displayText": "報名：早班 07:00"}, "style": "primary", "margin": "md", "color": "#1db446"}, {"type": "button", "action": {"type": "postback", "label": "晚班 22:00", "data": "shift=晚10", "displayText": "報名：晚班 22:00"}, "style": "primary", "margin": "md", "color": "#1db446"}]}}}]
+            "messages": [
+                {
+                    "type": "flex",
+                    "altText": "明日班別報名（請點選按鈕）",
+                    "contents": {
+                        "type": "bubble",
+                        "header": {
+                            "type": "box",
+                            "layout": "vertical",
+                            "contents": [
+                                {"type": "text", "text": "明日班別報名", "weight": "bold", "size": "xl", "color": "#ffffff"}
+                            ],
+                            "backgroundColor": "#00b900",
+                        },
+                        "body": {
+                            "type": "box",
+                            "layout": "vertical",
+                            "contents": [
+                                {"type": "text", "text": "報名時間：21:00 - 00:00", "size": "xs", "color": "#aaaaaa"},
+                                {
+                                    "type": "button",
+                                    "action": {
+                                        "type": "postback",
+                                        "label": "早班 07:00",
+                                        "data": "shift=早7",
+                                        "displayText": "報名：早班 07:00",
+                                    },
+                                    "style": "primary",
+                                    "margin": "md",
+                                    "color": "#1db446",
+                                },
+                                {
+                                    "type": "button",
+                                    "action": {
+                                        "type": "postback",
+                                        "label": "晚班 22:00",
+                                        "data": "shift=晚10",
+                                        "displayText": "報名：晚班 22:00",
+                                    },
+                                    "style": "primary",
+                                    "margin": "md",
+                                    "color": "#1db446",
+                                },
+                            ],
+                        },
+                    },
+                }
+            ],
         }
         await self._post("https://api.line.me/v2/bot/message/push", payload)
 
     async def push_attendance_card(self, to_id: str) -> None:
         payload = {
             "to": to_id,
-            "messages": [{"type": "flex", "altText": "今日出勤打卡（請點按鈕）", "contents": {"type": "bubble", "header": {"type": "box", "layout": "vertical", "backgroundColor": "#111111", "contents": [{"type": "text", "text": "今日出勤打卡", "size": "xl", "weight": "bold", "color": "#ffffff"}]}, "body": {"type": "box", "layout": "vertical", "spacing": "md", "contents": [{"type": "text", "text": "請依序點選按鈕（系統自動記錄時間）", "size": "sm", "color": "#666666"}, {"type": "button", "style": "primary", "color": "#1db446", "action": {"type": "postback", "label": "✅ 上班打卡", "data": "att=IN", "displayText": "上班打卡"}}, {"type": "button", "style": "secondary", "action": {"type": "postback", "label": "🍱 休息開始", "data": "att=BREAK_START", "displayText": "休息開始"}}, {"type": "button", "style": "secondary", "action": {"type": "postback", "label": "⏱️ 休息結束", "data": "att=BREAK_END", "displayText": "休息結束"}}, {"type": "button", "style": "primary", "color": "#ff4d4f", "action": {"type": "postback", "label": "🏁 下班打卡", "data": "att=OUT", "displayText": "下班打卡"}}]}}}]
+            "messages": [
+                {
+                    "type": "flex",
+                    "altText": "今日出勤打卡（請點按鈕）",
+                    "contents": {
+                        "type": "bubble",
+                        "header": {
+                            "type": "box",
+                            "layout": "vertical",
+                            "backgroundColor": "#111111",
+                            "contents": [
+                                {"type": "text", "text": "今日出勤打卡", "size": "xl", "weight": "bold", "color": "#ffffff"}
+                            ],
+                        },
+                        "body": {
+                            "type": "box",
+                            "layout": "vertical",
+                            "spacing": "md",
+                            "contents": [
+                                {"type": "text", "text": "請依序點選按鈕（系統自動記錄時間）", "size": "sm", "color": "#666666"},
+                                {"type": "button", "style": "primary", "color": "#1db446", "action": {"type": "postback", "label": "✅ 上班打卡", "data": "att=IN", "displayText": "上班打卡"}},
+                                {"type": "button", "style": "secondary", "action": {"type": "postback", "label": "🍱 休息開始", "data": "att=BREAK_START", "displayText": "休息開始"}},
+                                {"type": "button", "style": "secondary", "action": {"type": "postback", "label": "⏱️ 休息結束", "data": "att=BREAK_END", "displayText": "休息結束"}},
+                                {"type": "button", "style": "primary", "color": "#ff4d4f", "action": {"type": "postback", "label": "🏁 下班打卡", "data": "att=OUT", "displayText": "下班打卡"}},
+                            ],
+                        },
+                    },
+                }
+            ],
         }
         await self._post("https://api.line.me/v2/bot/message/push", payload)
 
@@ -78,12 +153,21 @@ class LineBotService:
 
 
 class LineWebhookHandler:
-    def __init__(self, line_service: LineBotService, signup_service: SignupService, attendance_service: AttendanceService, db_service: DatabaseService, event_stream) -> None:
+    def __init__(
+        self,
+        line_service: LineBotService,
+        signup_service: SignupService,
+        attendance_service: AttendanceService,
+        db_service: DatabaseService,
+        event_stream,
+        employee_service=None,
+    ) -> None:
         self.line_service = line_service
         self.signup_service = signup_service
         self.attendance_service = attendance_service
         self.db = db_service
         self.event_stream = event_stream
+        self.employee_service = employee_service
 
     async def handle_event(self, event: LineEvent) -> None:
         if event.webhookEventId:
@@ -97,6 +181,7 @@ class LineWebhookHandler:
         group_id = source.groupId if source else ""
         user_id = source.userId if source else ""
         reply_token = event.replyToken or ""
+
         self.db.add_log("INFO", "event.type", f"type={event.type} user={user_id} group={group_id}")
 
         if event.type == "message" and event.message and event.message.type == "text":
@@ -114,11 +199,15 @@ class LineWebhookHandler:
 
     async def _handle_text_message(self, text: str, group_id: str, user_id: str, reply_token: str, event: LineEvent) -> None:
         if text == "報班":
+            name = await self._resolve_user_name(group_id, user_id)
+            self._ensure_employee(user_id, name, group_id)
             await self.line_service.push_shift_form(group_id or user_id)
             await self.line_service.reply_text(reply_token, "✅ 已重新推播報班表單")
             return
 
         if text == "打卡":
+            name = await self._resolve_user_name(group_id, user_id)
+            self._ensure_employee(user_id, name, group_id)
             await self.line_service.push_attendance_card(group_id or user_id)
             await self.line_service.reply_text(reply_token, "✅ 已推播今日出勤打卡按鈕")
             return
@@ -131,37 +220,59 @@ class LineWebhookHandler:
         }
         if text in action_map:
             name = await self._resolve_user_name(group_id, user_id)
+            self._ensure_employee(user_id, name, group_id)
             event_time = self._resolve_event_time(event.timestamp)
             result = self.attendance_service.handle_attendance(
                 AttendanceContext(uid=user_id, name=name, group_id=group_id, action=action_map[text], event_time=event_time)
             )
+            self._update_employee_shift(user_id, event_time.strftime("%Y-%m-%d"))
             await self.line_service.reply_text(reply_token, result.message)
-            await self.event_stream.publish('dashboard_updated')
+            await self.event_stream.publish("dashboard_updated")
 
     async def _handle_postback(self, data: str, group_id: str, user_id: str, reply_token: str, event: LineEvent) -> None:
         if data.startswith("att="):
             action_str = data.replace("att=", "")
             name = await self._resolve_user_name(group_id, user_id)
+            self._ensure_employee(user_id, name, group_id)
             event_time = self._resolve_event_time(event.timestamp)
             result = self.attendance_service.handle_attendance(
                 AttendanceContext(uid=user_id, name=name, group_id=group_id, action=AttendanceAction(action_str), event_time=event_time)
             )
+            self._update_employee_shift(user_id, event_time.strftime("%Y-%m-%d"))
             await self.line_service.reply_text(reply_token, result.message)
-            await self.event_stream.publish('dashboard_updated')
+            await self.event_stream.publish("dashboard_updated")
             return
 
         if data.startswith("shift="):
             name = await self._resolve_user_name(group_id, user_id)
+            self._ensure_employee(user_id, name, group_id)
             result = self.signup_service.upsert_signup(uid=user_id, name=name, group_id=group_id, raw_shift=data)
+            if result.get("shift_text"):
+                self._update_employee_latest_shift(user_id, result["shift_text"])
             await self.line_service.reply_text(reply_token, result["message"])
-            await self.event_stream.publish('dashboard_updated')
+            await self.event_stream.publish("dashboard_updated")
 
     async def _resolve_user_name(self, group_id: str, user_id: str) -> str:
         return (
             await self.line_service.get_group_member_name(group_id, user_id)
             or await self.line_service.get_user_name(user_id)
-            or f"使用者-{user_id[:6]}" if user_id else "匿名員工"
+            or (f"使用者-{user_id[:6]}" if user_id else "匿名員工")
         )
+
+    def _ensure_employee(self, uid: str, name: str, group_id: str) -> None:
+        if self.employee_service and uid:
+            self.employee_service.ensure_employee(uid, name, group_id)
+
+    def _update_employee_latest_shift(self, uid: str, latest_shift: str) -> None:
+        if self.employee_service and uid and latest_shift:
+            self.employee_service.db.update_employee_latest_shift(uid, latest_shift)
+
+    def _update_employee_shift(self, uid: str, work_date: str) -> None:
+        if not self.employee_service or not uid or not work_date:
+            return
+        shift = self.db.get_shift_for_date(uid, work_date)
+        if shift:
+            self.employee_service.db.update_employee_latest_shift(uid, shift)
 
     @staticmethod
     def _resolve_event_time(timestamp_ms: Optional[int]) -> datetime:
