@@ -170,7 +170,7 @@
         const res=await fetch('/admin/api/employees',{headers:{Accept:'application/json'}});
         if(!res.ok) throw new Error(`employees 載入失敗 (${res.status})`);
         const json=await res.json();
-        employees=Array.isArray(json)?json:(json.items||[]);
+        employees = Array.isArray(json) ? json : (json.employees || json.items || []);
         renderEmployees();
         if(showToast) showNotice('success','員工名單已更新。');
       }catch(err){showNotice('error',err.message||'載入員工名單失敗。')}
