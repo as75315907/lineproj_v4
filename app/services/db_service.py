@@ -190,3 +190,44 @@ class DatabaseService:
                 (shift_alias, target_date, target_date),
             ).fetchone()
         return float(row['bonus_per_hour']) if row and row['bonus_per_hour'] is not None else None
+
+
+def upsert_employee(self, uid: str, name: str, group_id: str, role: str = 'staff', status: str = 'active', source: str = '首次互動自動建檔') -> None:
+    with connection() as conn:
+        conn.execute(
+            '''INSERT INTO employees (uid, name, group_id, role, status, source)
+               VALUES (?, ?, ?, ?, ?, ?)
+               ON CONFLICT(uid) DO UPDATE SET
+                 name = CASE WHEN excluded.name != '' THEN excluded.name ELSE employees.name END,
+                 group_id = CASE WHEN excluded.group_id != '' THEN excluded.group_id ELSE employees.group_id END,
+                 updated_at = CURRENT_TIMESTAMP''',
+            (uid, name, group_id, role, status, source),
+        )
+
+def update_employee_latest_shift(self, uid: str, latest_shift: str) -> None:
+    with connection() as conn:
+        conn.execute(
+            'UPDATE employees SET latest_shift = ?, updated_at = CURRENT_TIMESTAMP WHERE uid = ?',
+            (latest_shift, uid),
+        )
+
+def list_employees(self) -> list[dict[str, Any]]:
+    with connection() as conn:
+        rows = conn.execute(
+            '''SELECT uid, name, group_id, role, status, source, latest_shift, note
+               FROM employees
+               ORDER BY updated_at DESC, uid'''
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+def update_employee_role(self, uid: str, role: str) -> None:
+    with connection() as conn:
+        conn.execute('UPDATE employees SET role = ?, updated_at = CURRENT_TIMESTAMP WHERE uid = ?', (role, uid))
+
+def update_employee_status(self, uid: str, status: str) -> None:
+    with connection() as conn:
+        conn.execute('UPDATE employees SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE uid = ?', (status, uid))
+
+def update_employee_note(self, uid: str, note: str) -> None:
+    with connection() as conn:
+        conn.execute('UPDATE employees SET note = ?, updated_at = CURRENT_TIMESTAMP WHERE uid = ?', (note, uid))

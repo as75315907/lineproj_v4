@@ -23,13 +23,7 @@ class InvoiceService:
     def ensure_sheet_ready(self) -> None:
         self.sheets.ensure_header(settings.invoice_sheet_name, self.HEADER)
 
-    def _money_fields(
-        self,
-        date_key: str,
-        shift: str,
-        break_min: int | None,
-        net_min: int | None,
-    ) -> tuple[str, str, float, int, float, int, int]:
+    def _money_fields(self, date_key: str, shift: str, break_min: int | None, net_min: int | None) -> tuple[str, str, float, int, float, int, int]:
         wage = 190 if shift == '早班 07:00' else 210 if shift == '晚班 22:00' else 0
         bonus = self.bonus_service.resolve_bonus(date_key, shift)
         break_hours = ((break_min or 0) / 60)
@@ -53,36 +47,14 @@ class InvoiceService:
         net_min: int | None = None,
         sync_status: str = '已同步',
     ) -> list[str | int | float]:
-        total_hours, break_hours, net_hours, wage, bonus, salary, bonus_amount = self._money_fields(
-            date_key, shift, break_min, net_min
-        )
-        return [
-            uid, date_key, shift, name, in_time, out_time, total_hours, break_start, break_end,
-            break_hours, f'{net_hours:.2f}', wage, bonus, salary, bonus_amount, sync_status,
-        ]
+        total_hours, break_hours, net_hours, wage, bonus, salary, bonus_amount = self._money_fields(date_key, shift, break_min, net_min)
+        return [uid, date_key, shift, name, in_time, out_time, total_hours, break_start, break_end, break_hours, f'{net_hours:.2f}', wage, bonus, salary, bonus_amount, sync_status]
 
-    def sync_attendance_to_invoice(
-        self,
-        uid: str,
-        name: str,
-        date_key: str,
-        shift: str,
-        in_time: str,
-        out_time: str,
-        break_start: str,
-        break_end: str,
-        break_min: int | None = None,
-        net_min: int | None = None,
-    ) -> None:
+    def sync_attendance_to_invoice(self, uid: str, name: str, date_key: str, shift: str, in_time: str, out_time: str, break_start: str, break_end: str, break_min: int | None = None, net_min: int | None = None) -> None:
         if not settings.realtime_sheet_sync:
             return
-
         self.ensure_sheet_ready()
-
-        row = self.build_invoice_row(
-            uid, name, date_key, shift, in_time, out_time, break_start, break_end,
-            break_min, net_min, sync_status='已同步' if out_time else '待同步'
-        )
+        row = self.build_invoice_row(uid, name, date_key, shift, in_time, out_time, break_start, break_end, break_min, net_min, sync_status='已同步' if out_time else '待同步')
         mode = self.sheets.upsert_row_by_two_keys(settings.invoice_sheet_name, 1, uid, 2, date_key, row)
         logger.info('invoice sheet %s uid=%s date=%s', mode, uid, date_key)
 

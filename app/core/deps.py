@@ -2,6 +2,7 @@ from app.services.admin_dashboard_service import AdminDashboardService
 from app.services.attendance_service import AttendanceService
 from app.services.bonus_service import BonusService
 from app.services.db_service import DatabaseService
+from app.services.employee_service import EmployeeService
 from app.services.event_stream_service import event_stream
 from app.services.export_service import ExportService
 from app.services.invoice_service import InvoiceService
@@ -21,6 +22,10 @@ def get_sheets_service() -> GoogleSheetsService:
 
 def get_bonus_service() -> BonusService:
     return BonusService(get_sheets_service(), get_db_service())
+
+
+def get_employee_service() -> EmployeeService:
+    return EmployeeService(get_db_service())
 
 
 def get_line_bot_service() -> LineBotService:
@@ -50,6 +55,7 @@ def get_webhook_handler() -> LineWebhookHandler:
         attendance_service=get_attendance_service(),
         db_service=get_db_service(),
         event_stream=event_stream,
+        employee_service=get_employee_service(),
     )
 
 
