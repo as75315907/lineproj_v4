@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ page_title or 'LINE 報班 / 打卡私人管理後台' }}</title>
+  <style>
+    :root{--bg:#f1f5f9;--card:#fff;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;--primary:#0f172a;--primaryText:#fff;--warnBg:#fefce8;--warnBorder:#fde68a;--warnText:#854d0e;--successBg:#ecfdf5;--successBorder:#a7f3d0;--successText:#065f46;--errorBg:#fff1f2;--errorBorder:#fecdd3;--errorText:#9f1239;--tabHover:#f8fafc}
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif;background:var(--bg);color:var(--text)}
+    .container{max-width:1180px;margin:0 auto;padding:24px}.card{background:var(--card);border:1px solid var(--border);border-radius:24px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+    .header{padding:28px;display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap}.title-small{font-size:13px;color:var(--muted)}.title-main{font-size:40px;font-weight:800;line-height:1.1;margin:8px 0}.title-meta{font-size:14px;color:var(--muted)}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.date-input{border:1px solid var(--border);border-radius:16px;padding:12px 14px;font-size:14px;background:#fff}
+    button{border:none;border-radius:16px;padding:12px 18px;cursor:pointer;font-size:14px;transition:.15s ease}button:disabled{opacity:.55;cursor:not-allowed}.btn-primary{background:var(--primary);color:var(--primaryText)}.btn-outline{background:#fff;color:#0f172a;border:1px solid var(--border)}
+    .alert{margin-top:14px;padding:16px 18px;border-radius:18px;border:1px solid var(--warnBorder);background:var(--warnBg);color:var(--warnText)}.notice{margin-top:14px;padding:14px 16px;border-radius:18px;font-size:14px;display:none}.notice.success{display:block;background:var(--successBg);border:1px solid var(--successBorder);color:var(--successText)}.notice.error{display:block;background:var(--errorBg);border:1px solid var(--errorBorder);color:var(--errorText)}
+    .grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:18px}.stat{padding:18px 20px}.stat .label{font-size:13px;color:var(--muted);margin-bottom:10px}.stat .value{font-size:36px;font-weight:800}.stat .desc{font-size:12px;color:var(--muted);margin-top:6px}
+    .grid-2{display:grid;grid-template-columns:1.25fr .75fr;gap:14px;margin-top:18px}.section{padding:18px 20px}.section h3{margin:0 0 14px;font-size:22px}.mapping-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.mini{background:#f8fafc;border-radius:18px;padding:14px;font-size:14px}.mini strong{display:block;margin-bottom:6px}.search{width:100%;border:1px solid var(--border);border-radius:16px;padding:13px 16px;font-size:14px;outline:none}
+    .tabs{margin-top:18px;padding:6px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;background:#fff;border:1px solid var(--border);border-radius:18px}.tab-btn{background:transparent;color:#475569}.tab-btn:hover{background:var(--tabHover)}.tab-btn.active{background:#0f172a;color:#fff;font-weight:700}
+    .panel{margin-top:14px}.panel.hidden{display:none}.panel-header{padding:20px 22px 0;font-size:22px;font-weight:800}.table-wrap{overflow:auto;padding:18px 22px 22px}
+    table{width:100%;border-collapse:collapse;min-width:980px;font-size:14px;background:#fff;border:1px solid var(--border);border-radius:18px}thead{background:#f8fafc}th,td{padding:12px 14px;text-align:left;border-top:1px solid var(--border);vertical-align:top}thead th{border-top:none;color:#475569;font-weight:700}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}.muted{color:var(--muted)}.badge{display:inline-flex;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid transparent;white-space:nowrap}.b-green{background:#dcfce7;color:#166534;border-color:#bbf7d0}.b-amber{background:#fef3c7;color:#92400e;border-color:#fde68a}.b-blue{background:#dbeafe;color:#1d4ed8;border-color:#bfdbfe}.b-indigo{background:#e0e7ff;color:#4338ca;border-color:#c7d2fe}.b-rose{background:#ffe4e6;color:#be123c;border-color:#fecdd3}.b-slate{background:#f1f5f9;color:#475569;border-color:#e2e8f0}
+    .logs-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px;margin-top:14px}.log-list{padding:18px 22px 22px}.log-item{border:1px solid var(--border);border-radius:18px;padding:14px;margin-bottom:12px;background:#fff}.health{padding:18px 22px 22px}.health-item{background:#f8fafc;border-radius:18px;padding:14px;margin-bottom:12px;font-size:14px}
+    .footer-note{margin-top:18px;padding:16px;border:1px dashed #cbd5e1;background:#fff;border-radius:22px;color:var(--muted);font-size:14px}.empty{text-align:center;color:#94a3b8;padding:28px}.small{font-size:12px}
+    @media (max-width:1024px){.grid-4,.grid-2,.logs-grid{grid-template-columns:1fr 1fr}.tabs{grid-template-columns:repeat(3,minmax(0,1fr))}}@media (max-width:768px){.container{padding:14px}.title-main{font-size:30px}.grid-4,.grid-2,.mapping-grid,.logs-grid,.tabs{grid-template-columns:1fr}.header{padding:20px}.section,.stat{padding:16px}button{width:100%}.actions{width:100%}.actions>*{flex:1 1 100%}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card header">
+      <div>
+        <div class="title-small">LINE 報班 / 打卡私人管理後台（正式版流程）</div>
+        <div class="title-main">系統狀態總覽</div>
+        <div class="title-meta" id="metaLine">日期：- ｜ 資料來源：FastAPI / SQLite / LINE webhook</div>
+      </div>
+      <div class="actions">
+        <input id="dateInput" class="date-input" type="date" />
+        <button id="refreshBtn" class="btn-primary">重新整理</button>
+        <button id="exportSheetBtn" class="btn-outline">匯出 Google Sheet</button>
+        <button id="exportExcelBtn" class="btn-outline">匯出 Excel</button>
+        <button id="importBtn" class="btn-outline">匯入歷史 Sheet</button>
+      </div>
+    </div>
+    <div class="alert" id="summaryAlert">目前有 0 筆「觀音長派」待同步，0 筆獎金別名待補。</div>
+    <div class="notice" id="noticeBox"></div>
+    <div class="grid-4">
+      <div class="card stat"><div class="label">工作表1 報班筆數</div><div class="value" id="statSignup">0</div><div class="desc">今日已報班資料</div></div>
+      <div class="card stat"><div class="label">出勤彙總進行中</div><div class="value" id="statWorking">0</div><div class="desc">含上班打卡完成與休息後上工中</div></div>
+      <div class="card stat"><div class="label">已完成下班打卡</div><div class="value" id="statOffDuty">0</div><div class="desc">今日已完整走完打卡流程</div></div>
+      <div class="card stat"><div class="label">待匯出甲方</div><div class="value" id="statPending">0</div><div class="desc">觀音長派待同步/匯出</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card section"><h3>目前系統對應分頁</h3><div class="mapping-grid"><div class="mini"><strong>工作表1</strong><span class="muted">報班結果匯出</span></div><div class="mini"><strong>出勤彙總</strong><span class="muted">打卡結果匯出</span></div><div class="mini"><strong>觀音長派</strong><span class="muted">甲方人資請款預覽</span></div><div class="mini"><strong>長期派遣-排休獎金 / DEBUG_LOG</strong><span class="muted">獎金規則與系統紀錄</span></div></div></div>
+      <div class="card section"><h3>快速查詢</h3><input id="keywordInput" class="search" placeholder="搜尋姓名、UID、群組ID、班別或狀態" /></div>
+    </div>
+    <div class="tabs"><button class="tab-btn active" data-tab="attendance">出勤彙總</button><button class="tab-btn" data-tab="signup">工作表1</button><button class="tab-btn" data-tab="invoice">觀音長派</button><button class="tab-btn" data-tab="bonus">排休獎金</button><button class="tab-btn" data-tab="system">DEBUG_LOG</button></div>
+    <div class="panel" id="panel-attendance"><div class="card"><div class="panel-header">出勤彙總</div><div class="table-wrap"><div id="attendanceTable"></div></div></div></div>
+    <div class="panel hidden" id="panel-signup"><div class="card"><div class="panel-header">工作表1</div><div class="table-wrap"><div id="signupTable"></div></div></div></div>
+    <div class="panel hidden" id="panel-invoice"><div class="card"><div class="panel-header">觀音長派（請款預覽）</div><div class="table-wrap"><div id="invoiceTable"></div></div></div></div>
+    <div class="panel hidden" id="panel-bonus"><div class="card"><div class="panel-header">長期派遣-排休獎金（班別別名對照）</div><div class="table-wrap"><div id="bonusTable"></div></div></div></div>
+    <div class="panel hidden" id="panel-system"><div class="logs-grid"><div class="card"><div class="panel-header">DEBUG_LOG / 最近系統紀錄</div><div class="log-list" id="logsList"></div></div><div class="card"><div class="panel-header">同步健康度</div><div class="health" id="healthBox"></div></div></div></div>
+    <div class="footer-note">這版以資料庫作為主資料來源；員工在 LINE 群組報班/打卡後，後台會由 webhook 事件主動更新。只有在你需要交付給甲方人資時，才按匯出成 Google Sheet 或 Excel。</div>
+  </div>
+<script>
+const EMPTY={date:'',stats:{signupCount:0,workingCount:0,offDutyCount:0,pendingSync:0},signups:[],attendance:[],invoices:[],bonusRules:[],logs:[]};
+let dashboard={...EMPTY},keyword='',activeTab='attendance',loading=false,actionLoading='';
+const statusClass={'已登記':'b-green','已更新班別':'b-amber','上班打卡完成':'b-blue','休息後上工中':'b-indigo','未上班打卡':'b-rose','已下班':'b-green','待同步':'b-amber','已同步':'b-green','已對應':'b-green','待補別名':'b-rose','INFO':'b-slate','WARN':'b-amber','ERROR':'b-rose'};
+function escapeHtml(v){return String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;')}
+function badge(v){const text=v||'-',cls=statusClass[text]||'b-slate';return `<span class="badge ${cls}">${escapeHtml(text)}</span>`}
+function showNotice(type,msg){const box=document.getElementById('noticeBox');box.className=`notice ${type}`;box.textContent=msg}
+function setButtons(){const disabled=loading||!!actionLoading;const refreshBtn=document.getElementById('refreshBtn');const exportSheetBtn=document.getElementById('exportSheetBtn');const exportExcelBtn=document.getElementById('exportExcelBtn');const importBtn=document.getElementById('importBtn');refreshBtn.disabled=disabled;exportSheetBtn.disabled=disabled;exportExcelBtn.disabled=disabled;importBtn.disabled=disabled;refreshBtn.textContent=loading?'重新整理中...':'重新整理';exportSheetBtn.textContent=actionLoading==='sheet'?'匯出中...':'匯出 Google Sheet';exportExcelBtn.textContent=actionLoading==='excel'?'產生中...':'匯出 Excel';importBtn.textContent=actionLoading==='import'?'匯入中...':'匯入歷史 Sheet';}
+function renderTable(columns,rows,cellRenderer,emptyText='目前沒有資料'){if(!rows.length){return `<table><thead><tr>${columns.map(c=>`<th>${escapeHtml(c)}</th>`).join('')}</tr></thead><tbody><tr><td class="empty" colspan="${columns.length}">${escapeHtml(emptyText)}</td></tr></tbody></table>`}return `<table><thead><tr>${columns.map(c=>`<th>${escapeHtml(c)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${cellRenderer(r)}</tr>`).join('')}</tbody></table>`}
+function includesKeyword(values){if(!keyword.trim()) return true;return values.filter(v=>v!==null&&v!==undefined&&v!=='').some(v=>String(v).includes(keyword))}
+function selectedDate(){return document.getElementById('dateInput').value || ''}
+function filtered(arr, valuesFn){return arr.filter(r=>includesKeyword(valuesFn(r)))}
+function renderDashboard(){const stats=dashboard.stats||EMPTY.stats;const bonusRules=dashboard.bonusRules||[];const pendingBonusAliasCount=bonusRules.filter(r=>r.status==='待補別名').length;document.getElementById('metaLine').textContent=`日期：${dashboard.date||'-'} ｜ 資料來源：FastAPI / SQLite / LINE webhook`;document.getElementById('summaryAlert').textContent=`目前有 ${stats.pendingSync||0} 筆「觀音長派」待同步，${pendingBonusAliasCount} 筆獎金別名待補。`;document.getElementById('statSignup').textContent=stats.signupCount||0;document.getElementById('statWorking').textContent=stats.workingCount||0;document.getElementById('statOffDuty').textContent=stats.offDutyCount||0;document.getElementById('statPending').textContent=stats.pendingSync||0;if(!selectedDate()&&dashboard.date){document.getElementById('dateInput').value=dashboard.date}
+const signups=filtered(dashboard.signups||[],r=>[r.name,r.uid,r.shift,r.groupId,r.status]);const attendance=filtered(dashboard.attendance||[],r=>[r.name,r.uid,r.groupId,r.status,r.date]);const invoices=filtered(dashboard.invoices||[],r=>[r.name,r.uid,r.shift,r.date,r.sync]);const bonus=filtered(dashboard.bonusRules||[],r=>[r.date,r.sourceShift,r.alias,r.sourceSheet,r.status]);const logs=filtered(dashboard.logs||[],r=>[r.time,r.level,r.tag,r.message]);
+document.getElementById('signupTable').innerHTML=renderTable(['UID','姓名','群組ID','班別','報班窗口','登記時間','狀態'],signups,r=>`<td class='mono'>${escapeHtml(r.uid||'-')}</td><td>${escapeHtml(r.name||'-')}</td><td class='mono'>${escapeHtml(r.groupId||'-')}</td><td>${escapeHtml(r.shift||'-')}</td><td>${escapeHtml(r.window||'-')}</td><td>${escapeHtml(r.signupAt||'-')}</td><td>${badge(r.status)}</td>`);
+document.getElementById('attendanceTable').innerHTML=renderTable(['日期','UID','姓名','群組ID','上班時間','休息開始','休息結束','下班時間','休息分鐘','工作分鐘','淨工作分鐘','備註','狀態'],attendance,r=>`<td>${escapeHtml(r.date||'-')}</td><td class='mono'>${escapeHtml(r.uid||'-')}</td><td>${escapeHtml(r.name||'-')}</td><td class='mono'>${escapeHtml(r.groupId||'-')}</td><td>${escapeHtml(r.in||'-')}</td><td>${escapeHtml(r.breakStart||'-')}</td><td>${escapeHtml(r.breakEnd||'-')}</td><td>${escapeHtml(r.out||'-')}</td><td>${escapeHtml(r.breakMin??'-')}</td><td>${escapeHtml(r.workMin??'-')}</td><td>${escapeHtml(r.netMin??'-')}</td><td class='muted'>${escapeHtml(r.remark||'-')}</td><td>${badge(r.status)}</td>`);
+document.getElementById('invoiceTable').innerHTML=renderTable(['UID','日期','班別','姓名','上班時間','下班時間','出勤總時數','休息開始','休息結束','休息時間','實際出勤總時數','時薪','獎金(每小時)','薪資','獎金總額','同步狀態'],invoices,r=>`<td class='mono'>${escapeHtml(r.uid||'-')}</td><td>${escapeHtml(r.date||'-')}</td><td>${escapeHtml(r.shift||'-')}</td><td>${escapeHtml(r.name||'-')}</td><td>${escapeHtml(r.in||'-')}</td><td>${escapeHtml(r.out||'-')}</td><td>${escapeHtml(r.totalHours||'-')}</td><td>${escapeHtml(r.breakStart||'-')}</td><td>${escapeHtml(r.breakEnd||'-')}</td><td>${escapeHtml(r.breakHours||'-')}</td><td>${escapeHtml(r.netHours||'-')}</td><td>${escapeHtml(r.wage??'-')}</td><td>${escapeHtml(r.bonus??'-')}</td><td>${escapeHtml(r.salary??'-')}</td><td>${escapeHtml(r.bonusAmount??'-')}</td><td>${badge(r.sync)}</td>`);
+document.getElementById('bonusTable').innerHTML=renderTable(['日期','來源班別','對應班別別名','獎金(每小時)','來源分頁','狀態'],bonus,r=>`<td>${escapeHtml(r.date||'-')}</td><td>${escapeHtml(r.sourceShift||'-')}</td><td>${escapeHtml(r.alias||'-')}</td><td>${escapeHtml(r.bonusPerHour??'-')}</td><td>${escapeHtml(r.sourceSheet||'-')}</td><td>${badge(r.status)}</td>`);
+document.getElementById('logsList').innerHTML=logs.length?logs.map(log=>`<div class='log-item'><div style='display:flex;justify-content:space-between;gap:12px;align-items:flex-start'><div><div style='font-weight:700'>${escapeHtml(log.message||'-')}</div><div class='small muted' style='margin-top:6px'>tag：${escapeHtml(log.tag||'-')}</div></div>${badge(log.level||'-')}</div><div class='small muted' style='margin-top:8px'>${escapeHtml(log.time||'-')}</div></div>`).join(''):`<div class='empty' style='border:1px solid var(--border);border-radius:18px;background:#fff'>目前沒有系統紀錄</div>`;
+document.getElementById('healthBox').innerHTML=`<div class='health-item'><strong>DB 主資料</strong><div style='margin-top:6px;color:#166534'>正常</div></div><div class='health-item'><strong>LINE Webhook 事件推送</strong><div style='margin-top:6px;color:#166534'>已連線</div></div><div class='health-item'><strong>Google Sheet 匯出</strong><div style='margin-top:6px;color:#92400e'>手動匯出模式</div></div><div class='health-item'><strong>SHIFT_ALIAS_MAP 對照</strong><div style='margin-top:6px;color:#be123c'>${pendingBonusAliasCount} 筆待補別名</div></div>`;}
+function setActiveTab(tab){activeTab=tab;document.querySelectorAll('.tab-btn').forEach(btn=>btn.classList.toggle('active',btn.dataset.tab===tab));['attendance','signup','invoice','bonus','system'].forEach(key=>document.getElementById(`panel-${key}`).classList.toggle('hidden',key!==tab))}
+async function loadDashboard(showToast=false){try{loading=true;setButtons();const q=selectedDate()?`?date=${encodeURIComponent(selectedDate())}`:'';const res=await fetch(`/admin/api/dashboard${q}`,{headers:{'Accept':'application/json'}});if(!res.ok) throw new Error(`dashboard 載入失敗 (${res.status})`);dashboard={...EMPTY,...await res.json()};renderDashboard();if(showToast) showNotice('success','後台資料已重新整理。')}catch(err){showNotice('error',err.message||'載入後台資料失敗。')}finally{loading=false;setButtons()}}
+async function postJson(url,key,success){try{actionLoading=key;setButtons();const res=await fetch(url,{method:'POST',headers:{'Accept':'application/json'}});const data=await res.json().catch(()=>({}));if(!res.ok||data.ok===false) throw new Error(data.detail||data.message||`${key} 失敗`);showNotice('success',data.message||success);if(data.url){window.open(data.url,'_blank')}await loadDashboard(false)}catch(err){showNotice('error',err.message||`${key} 失敗。`)}finally{actionLoading='';setButtons()}}
+function exportExcel(){const q=selectedDate()?`?date=${encodeURIComponent(selectedDate())}`:'';window.location.href=`/admin/api/export/excel${q}`}
+document.getElementById('refreshBtn').addEventListener('click',()=>loadDashboard(true));document.getElementById('exportSheetBtn').addEventListener('click',()=>postJson(`/admin/api/export/google-sheet${selectedDate()?`?date=${encodeURIComponent(selectedDate())}`:''}`,'sheet','已匯出 Google Sheet'));document.getElementById('exportExcelBtn').addEventListener('click',exportExcel);document.getElementById('importBtn').addEventListener('click',()=>postJson('/admin/api/sync/import','import','已從 Google Sheet 匯入歷史資料'));document.getElementById('keywordInput').addEventListener('input',e=>{keyword=e.target.value||'';renderDashboard()});document.getElementById('dateInput').addEventListener('change',()=>loadDashboard(false));document.querySelectorAll('.tab-btn').forEach(btn=>btn.addEventListener('click',()=>setActiveTab(btn.dataset.tab)));
+setActiveTab('attendance');loadDashboard(false);
+const evt=new EventSource('/admin/api/events/stream');evt.addEventListener('dashboard',()=>loadDashboard(false));evt.onerror=()=>{};
+</script>
+</body>
+</html>
