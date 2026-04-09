@@ -1,0 +1,13 @@
+-- 新增員工主檔表
+CREATE TABLE IF NOT EXISTS employees (
+  uid TEXT PRIMARY KEY,
+  name TEXT NOT NULL DEFAULT '',
+  group_id TEXT NOT NULL DEFAULT '',
+  role TEXT NOT NULL DEFAULT 'staff',
+  status TEXT NOT NULL DEFAULT 'active',
+  source TEXT NOT NULL DEFAULT '首次互動自動建檔',
+  latest_shift TEXT NOT NULL DEFAULT '',
+  note TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
