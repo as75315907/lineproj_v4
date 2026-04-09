@@ -107,8 +107,24 @@ def init_db() -> None:
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP
             );
 
+            CREATE TABLE IF NOT EXISTS employees (
+                uid TEXT PRIMARY KEY,
+                name TEXT NOT NULL DEFAULT '',
+                group_id TEXT DEFAULT '',
+                role TEXT NOT NULL DEFAULT 'staff',
+                status TEXT NOT NULL DEFAULT 'active',
+                source TEXT DEFAULT '首次互動自動建檔',
+                latest_shift TEXT DEFAULT '',
+                note TEXT DEFAULT '',
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+            );
+
             CREATE INDEX IF NOT EXISTS idx_signups_work_date ON signups(work_date);
             CREATE INDEX IF NOT EXISTS idx_attendance_date ON attendance_records(date);
             CREATE INDEX IF NOT EXISTS idx_bonus_rules_rule_date ON bonus_rules(rule_date);
+            CREATE INDEX IF NOT EXISTS idx_employees_group_id ON employees(group_id);
+            CREATE INDEX IF NOT EXISTS idx_employees_role ON employees(role);
+            CREATE INDEX IF NOT EXISTS idx_employees_status ON employees(status);
             """
         )
