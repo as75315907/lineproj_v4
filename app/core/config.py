@@ -15,9 +15,11 @@ class Settings(BaseSettings):
 
     line_channel_access_token: str = Field(default='', alias='LINE_CHANNEL_ACCESS_TOKEN')
     line_channel_secret: str = Field(default='', alias='LINE_CHANNEL_SECRET')
+    database_url: str = Field(default='', alias='DATABASE_URL')
 
     google_spreadsheet_id: str = Field(default='', alias='GOOGLE_SPREADSHEET_ID')
     google_service_account_file: str = Field(default='service_account.json', alias='GOOGLE_SERVICE_ACCOUNT_FILE')
+    google_service_account_json: str = Field(default='', alias='GOOGLE_SERVICE_ACCOUNT_JSON')
 
     group_id: str = Field(default='', alias='GROUP_ID')
     hr_group_id: str = Field(default='', alias='HR_GROUP_ID')
@@ -30,6 +32,8 @@ class Settings(BaseSettings):
 
     sqlite_db_path: str = Field(default='data/attendance.db', alias='SQLITE_DB_PATH')
     export_dir: str = Field(default='data/exports', alias='EXPORT_DIR')
+    admin_username: str = Field(default='', alias='ADMIN_USERNAME')
+    admin_password: str = Field(default='', alias='ADMIN_PASSWORD')
 
     test_mode: bool = Field(default=True, alias='TEST_MODE')
     signup_start_hour: int = Field(default=21, alias='SIGNUP_START_HOUR')
@@ -41,6 +45,10 @@ class Settings(BaseSettings):
         '早班 07:00': '早班',
         '晚班 22:00': '大夜班',
     }
+
+    @property
+    def admin_auth_enabled(self) -> bool:
+        return bool(self.admin_username and self.admin_password)
 
 
 @lru_cache

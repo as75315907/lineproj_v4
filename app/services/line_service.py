@@ -199,15 +199,19 @@ class LineWebhookHandler:
 
     async def _handle_text_message(self, text: str, group_id: str, user_id: str, reply_token: str, event: LineEvent) -> None:
         if text == "報班":
-            name = await self._resolve_user_name(group_id, user_id)
-            self._ensure_employee(user_id, name, group_id)
+            name, active = await self._prepare_employee(group_id, user_id)
+            if not active:
+                await self.line_service.reply_text(reply_token, "⚠️ 你的帳號目前已停用，請聯絡管理員。")
+                return
             await self.line_service.push_shift_form(group_id or user_id)
             await self.line_service.reply_text(reply_token, "✅ 已重新推播報班表單")
             return
 
         if text == "打卡":
-            name = await self._resolve_user_name(group_id, user_id)
-            self._ensure_employee(user_id, name, group_id)
+            name, active = await self._prepare_employee(group_id, user_id)
+            if not active:
+                await self.line_service.reply_text(reply_token, "⚠️ 你的帳號目前已停用，請聯絡管理員。")
+                return
             await self.line_service.push_attendance_card(group_id or user_id)
             await self.line_service.reply_text(reply_token, "✅ 已推播今日出勤打卡按鈕")
             return
@@ -219,8 +223,10 @@ class LineWebhookHandler:
             "下班打卡": AttendanceAction.OUT,
         }
         if text in action_map:
-            name = await self._resolve_user_name(group_id, user_id)
-            self._ensure_employee(user_id, name, group_id)
+            name, active = await self._prepare_employee(group_id, user_id)
+            if not active:
+                await self.line_service.reply_text(reply_token, "⚠️ 你的帳號目前已停用，請聯絡管理員。")
+                return
             event_time = self._resolve_event_time(event.timestamp)
             result = self.attendance_service.handle_attendance(
                 AttendanceContext(uid=user_id, name=name, group_id=group_id, action=action_map[text], event_time=event_time)
@@ -232,8 +238,10 @@ class LineWebhookHandler:
     async def _handle_postback(self, data: str, group_id: str, user_id: str, reply_token: str, event: LineEvent) -> None:
         if data.startswith("att="):
             action_str = data.replace("att=", "")
-            name = await self._resolve_user_name(group_id, user_id)
-            self._ensure_employee(user_id, name, group_id)
+            name, active = await self._prepare_employee(group_id, user_id)
+            if not active:
+                await self.line_service.reply_text(reply_token, "⚠️ 你的帳號目前已停用，請聯絡管理員。")
+                return
             event_time = self._resolve_event_time(event.timestamp)
             result = self.attendance_service.handle_attendance(
                 AttendanceContext(uid=user_id, name=name, group_id=group_id, action=AttendanceAction(action_str), event_time=event_time)
@@ -244,8 +252,10 @@ class LineWebhookHandler:
             return
 
         if data.startswith("shift="):
-            name = await self._resolve_user_name(group_id, user_id)
-            self._ensure_employee(user_id, name, group_id)
+            name, active = await self._prepare_employee(group_id, user_id)
+            if not active:
+                await self.line_service.reply_text(reply_token, "⚠️ 你的帳號目前已停用，請聯絡管理員。")
+                return
             result = self.signup_service.upsert_signup(uid=user_id, name=name, group_id=group_id, raw_shift=data)
             if result.get("shift_text"):
                 self._update_employee_latest_shift(user_id, result["shift_text"])
@@ -262,6 +272,14 @@ class LineWebhookHandler:
     def _ensure_employee(self, uid: str, name: str, group_id: str) -> None:
         if self.employee_service and uid:
             self.employee_service.ensure_employee(uid, name, group_id)
+
+    async def _prepare_employee(self, group_id: str, user_id: str) -> tuple[str, bool]:
+        resolved_name = await self._resolve_user_name(group_id, user_id)
+        self._ensure_employee(user_id, resolved_name, group_id)
+        if not self.employee_service:
+            return resolved_name, True
+        display_name = self.employee_service.get_display_name(user_id, resolved_name)
+        return display_name, self.employee_service.is_active(user_id)
 
     def _update_employee_latest_shift(self, uid: str, latest_shift: str) -> None:
         if self.employee_service and uid and latest_shift:

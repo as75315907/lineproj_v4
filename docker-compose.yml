@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: lineproj-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: lineproj
+      POSTGRES_USER: lineproj
+      POSTGRES_PASSWORD: lineproj
+      TZ: Asia/Taipei
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

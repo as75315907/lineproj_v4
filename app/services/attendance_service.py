@@ -73,7 +73,9 @@ class AttendanceService:
 
         fields: dict[str, Any] = {}
         if ctx.action == AttendanceAction.IN:
-            fields.update({'name': ctx.name, 'group_id': ctx.group_id, 'shift': shift, 'in_time': current_time_str, 'break_start': '', 'break_end': '', 'out_time': '', 'remark': '', 'status': '上班打卡完成'})
+            remark = '' if shift else '未報班直接上班，待後台補班別'
+            status = '上班打卡完成' if shift else '未報班直接上班'
+            fields.update({'name': ctx.name, 'group_id': ctx.group_id, 'shift': shift, 'in_time': current_time_str, 'break_start': '', 'break_end': '', 'out_time': '', 'remark': remark, 'status': status})
         elif ctx.action == AttendanceAction.BREAK_START:
             fields.update({'break_start': current_time_str, 'status': '休息中'})
         elif ctx.action == AttendanceAction.BREAK_END:
@@ -92,7 +94,39 @@ class AttendanceService:
         updated = self.db.get_attendance_record(ctx.uid, current_date_key) or {}
         self.sync_attendance_to_sheet(ctx.uid, current_date_key, updated)
         self.invoice_service.sync_attendance_to_invoice(uid=ctx.uid, name=ctx.name, date_key=current_date_key, shift=shift, in_time=updated.get('in_time', '') or '', out_time=updated.get('out_time', '') or '', break_start=updated.get('break_start', '') or '', break_end=updated.get('break_end', '') or '', break_min=updated.get('break_min'), net_min=updated.get('net_min'))
+        if ctx.action == AttendanceAction.IN and not shift:
+            return AttendanceResult(ok=True, message=f'⚠️ {ctx.name} 已先完成【上班打卡】： {current_time_str}\n尚未報班，請通知管理員到後台補班別。')
         return AttendanceResult(ok=True, message=f'✅ {ctx.name} 已完成【{self._label(ctx.action)}】： {current_time_str}')
+
+    def update_shift(self, uid: str, date_key: str, shift: str) -> dict[str, Any]:
+        record = self.db.get_attendance_record(uid, date_key)
+        if not record:
+            return {'ok': False, 'message': '找不到該筆出勤資料'}
+        clean_shift = shift.strip()
+        remark = (record.get('remark') or '').strip()
+        status = record.get('status', '未上班打卡')
+        if clean_shift and remark == '未報班直接上班，待後台補班別':
+            remark = '後台已補班別'
+        if clean_shift and status == '未報班直接上班':
+            status = '上班打卡完成'
+        self.db.update_attendance_fields(uid, date_key, shift=clean_shift, remark=remark, status=status)
+        self.db.update_employee_latest_shift(uid, clean_shift)
+        updated = self.db.get_attendance_record(uid, date_key) or {}
+        self.sync_attendance_to_sheet(uid, date_key, updated)
+        self.invoice_service.sync_attendance_to_invoice(
+            uid=uid,
+            name=updated.get('name', '') or '',
+            date_key=date_key,
+            shift=clean_shift,
+            in_time=updated.get('in_time', '') or '',
+            out_time=updated.get('out_time', '') or '',
+            break_start=updated.get('break_start', '') or '',
+            break_end=updated.get('break_end', '') or '',
+            break_min=updated.get('break_min'),
+            net_min=updated.get('net_min'),
+        )
+        self.db.add_log('INFO', 'attendance.shift', f'UID={uid} / date={date_key} / shift={clean_shift or "-"}')
+        return {'ok': True, 'message': '已更新出勤班別'}
 
     def replace_attendance_sheet(self, target_date: str | None = None) -> int:
         self.ensure_sheet_ready()

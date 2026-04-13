@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import Any, List, Optional
 
 try:
@@ -29,7 +30,7 @@ class GoogleSheetsService:
         if gspread is None or Credentials is None:
             logger.warning("gspread/google-auth not available yet")
             return None
-        if not settings.google_spreadsheet_id or not settings.google_service_account_file:
+        if not settings.google_spreadsheet_id:
             logger.warning("Google Sheets settings missing")
             return None
 
@@ -37,10 +38,27 @@ class GoogleSheetsService:
             "https://www.googleapis.com/auth/spreadsheets",
             "https://www.googleapis.com/auth/drive",
         ]
-        creds = Credentials.from_service_account_file(
-            settings.google_service_account_file,
-            scopes=scopes,
-        )
+        creds = None
+        if settings.google_service_account_json:
+            try:
+                service_account_info = json.loads(settings.google_service_account_json)
+                creds = Credentials.from_service_account_info(service_account_info, scopes=scopes)
+            except Exception as exc:
+                logger.warning("Failed to load Google service account JSON from env: %s", exc)
+                return None
+        elif settings.google_service_account_file:
+            try:
+                creds = Credentials.from_service_account_file(
+                    settings.google_service_account_file,
+                    scopes=scopes,
+                )
+            except Exception as exc:
+                logger.warning("Failed to load Google service account file: %s", exc)
+                return None
+        else:
+            logger.warning("Google Sheets credential source missing")
+            return None
+
         self._client = gspread.authorize(creds)
         return self._client
 

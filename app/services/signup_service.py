@@ -59,7 +59,7 @@ class SignupService:
             group_id=group_id,
             shift=shift_text,
             signup_at=now_text,
-            window='21:00 - 00:00',
+            signup_window='21:00 - 00:00',
             work_date=work_date,
         )
 

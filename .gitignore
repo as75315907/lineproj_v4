@@ -1,0 +1,10 @@
+.env
+.DS_Store
+service_account.json
+data/attendance.db
+data/exports/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
