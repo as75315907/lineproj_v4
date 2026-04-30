@@ -151,6 +151,94 @@ class LineBotService:
             if res.status_code >= 400:
                 logger.warning("LINE response body: %s", res.text)
 
+    async def reply_clock_in_flex(self, reply_token: str, action_label: str, clock_time: str, result_message: str) -> None:
+        """回傳打卡成功的 Flex Message 卡片"""
+        now = datetime.now(ZoneInfo(settings.timezone))
+        date_str = now.strftime("%Y/%m/%d")
+    
+        payload = {
+            "replyToken": reply_token,
+            "messages": [
+                {
+                    "type": "flex",
+                    "altText": f"{action_label} {clock_time}",
+                    "contents": {
+                        "type": "bubble",
+                        "styles": {
+                            "body": {"backgroundColor": "#EEF4FF"}
+                        },
+                        "body": {
+                            "type": "box",
+                            "layout": "vertical",
+                            "spacing": "md",
+                            "paddingAll": "lg",
+                            "contents": [
+                                {
+                                    "type": "text",
+                                    "text": "你已打卡成功",
+                                    "color": "#00B900",
+                                    "size": "sm",
+                                    "weight": "bold"
+                                },
+                                {
+                                    "type": "text",
+                                    "text": f"{action_label} {clock_time}",
+                                    "size": "xxl",
+                                    "weight": "bold",
+                                    "color": "#111111",
+                                    "wrap": True
+                                },
+                                {
+                                    "type": "text",
+                                    "text": f"日期 {date_str}",
+                                    "size": "sm",
+                                    "color": "#888888"
+                                },
+                                {"type": "separator", "margin": "md"},
+                                {
+                                    "type": "box",
+                                    "layout": "vertical",
+                                    "margin": "md",
+                                    "spacing": "sm",
+                                    "contents": [
+                                        {
+                                            "type": "box",
+                                            "layout": "horizontal",
+                                            "contents": [
+                                                {"type": "text", "text": "狀態", "color": "#888888", "size": "sm", "flex": 2},
+                                                {"type": "text", "text": result_message, "color": "#333333", "size": "sm", "flex": 3, "align": "end", "wrap": True}
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {"type": "separator", "margin": "md"},
+                                {
+                                    "type": "box",
+                                    "layout": "vertical",
+                                    "margin": "sm",
+                                    "contents": [
+                                        {
+                                            "type": "button",
+                                            "action": {"type": "message", "label": "查看出勤紀錄", "text": "查看出勤紀錄"},
+                                            "style": "link",
+                                            "color": "#1155CC"
+                                        },
+                                        {
+                                            "type": "button",
+                                            "action": {"type": "message", "label": "我要請假", "text": "我要請假"},
+                                            "style": "link",
+                                            "color": "#1155CC"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+        await self._post("https://api.line.me/v2/bot/message/reply", payload)
+
 
 class LineWebhookHandler:
     def __init__(
