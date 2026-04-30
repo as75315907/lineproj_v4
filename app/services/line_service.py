@@ -292,30 +292,50 @@ class LineWebhookHandler:
             await self.line_service.push_shift_form(group_id or user_id)
             await self.line_service.reply_text(reply_token, "✅ 已重新推播報班表單")
             return
-
+    
         if text == "打卡":
             name = await self._resolve_user_name(group_id, user_id)
             self._ensure_employee(user_id, name, group_id)
             await self.line_service.push_attendance_card(group_id or user_id)
             await self.line_service.reply_text(reply_token, "✅ 已推播今日出勤打卡按鈕")
             return
-
+    
+        # ✅ 新增：Rich Menu 選單觸發的文字 → 對應動作
         action_map = {
-            "上班打卡": AttendanceAction.IN,
-            "休息開始": AttendanceAction.BREAK_START,
-            "休息結束": AttendanceAction.BREAK_END,
-            "下班打卡": AttendanceAction.OUT,
+            # 原本群組文字觸發
+            "上班打卡": (AttendanceAction.IN,          "上班打卡"),
+            "休息開始": (AttendanceAction.BREAK_START,  "休息開始"),
+            "休息結束": (AttendanceAction.BREAK_END,    "休息結束"),
+            "下班打卡": (AttendanceAction.OUT,          "下班打卡"),
+            # ✅ 新增：Rich Menu 選單文字
+            "我要打卡": (AttendanceAction.IN,          "上班打卡"),
+            "忘記打卡": (AttendanceAction.IN,          "上班打卡"),  # 可依需求調整
+            "休息開始": (AttendanceAction.BREAK_START,  "休息開始"),
+            "休息結束": (AttendanceAction.BREAK_END,    "休息結束"),
         }
+    
         if text in action_map:
+            action, action_label = action_map[text]
             name = await self._resolve_user_name(group_id, user_id)
             self._ensure_employee(user_id, name, group_id)
             event_time = self._resolve_event_time(event.timestamp)
             result = self.attendance_service.handle_attendance(
-                AttendanceContext(uid=user_id, name=name, group_id=group_id, action=action_map[text], event_time=event_time)
+                AttendanceContext(uid=user_id, name=name, group_id=group_id, action=action, event_time=event_time)
             )
             self._update_employee_shift(user_id, event_time.strftime("%Y-%m-%d"))
-            await self.line_service.reply_text(reply_token, result.message)
             await self.event_stream.publish("dashboard_updated")
+    
+            # ✅ 判斷來源：1對1 官方帳號 → 回 Flex；群組 → 回純文字
+            if group_id:
+                await self.line_service.reply_text(reply_token, result.message)
+            else:
+                clock_time = event_time.strftime("%H:%M")
+                await self.line_service.reply_clock_in_flex(
+                    reply_token=reply_token,
+                    action_label=action_label,
+                    clock_time=clock_time,
+                    result_message=result.message
+                )
 
     async def _handle_postback(self, data: str, group_id: str, user_id: str, reply_token: str, event: LineEvent) -> None:
         if data.startswith("att="):
